@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import BackButton from "./BackButton";
 import { FeaturedRecipeCard, getRecipesQuery } from "@/app/CompsServer";
 import { AppContext } from "@/app/AppContextWrapper";
+import FavButton from "./FavButton";
 
 export default function RecipeById(params) {
   const { user } = useContext(AppContext);
@@ -22,14 +23,20 @@ export default function RecipeById(params) {
     };
 
     fetchData();
-  }, [params?.id]);
+  }, [params?.author, params?.filterWord, params?.id, params?.items]);
 
   return (
     <>
       {loaded && (
         <>
           <BackButton />
-          <FeaturedRecipeCard measure={"grams"} showInstructions={true} showIngredients={true} recipe={recipe[0]} />
+          <FavButton/>
+          <FeaturedRecipeCard
+            measure={"grams"}
+            showInstructions={true}
+            showIngredients={true}
+            recipe={recipe[0]}
+          />
         </>
       )}
     </>

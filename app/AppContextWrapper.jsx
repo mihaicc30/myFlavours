@@ -22,19 +22,17 @@ export function AppContextWrapper({ children }) {
   useEffect(() => {
     // Subscribe to auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-			console.log("TCL:user", contextValues.user?.uid, user?.uid, contextValues.user?.uid === user?.uid)
       if (auth.currentUser) {
         if (contextValues.user?.uid !== user.uid) {
-          console.log("updating user")
+          // console.log("updating user")
           updateContext({ user });
         } else {
-          console.log("not updating user", "user the same")
+          // console.log("not updating user", "user the same")
         }
         // User is signed in
       } else {
-        console.log("user is not auth")
+        // console.log("user is not auth")
         // User is signed out
-        // updateContext({ user: null, isUser: false });
       }
     });
 
@@ -66,58 +64,83 @@ function TopNav() {
   const pathname = usePathname();
   const { push } = useRouter();
 
-  const handleSignout = async() => {
+  const handleSignout = async () => {
     await logOut();
     updateContext({ user: false });
   };
 
-  if (user)
-    return (
-      <>
-        {pathname !== "/" && !pathname.startsWith("/recipe") && (
-          <div className={`basis-[60px] bg-gradient-to-b from-[#cacaca] to-transparent flex flex-nowrap justify-between w-[100%] overflow-x-hidden`}>
-            {/* <Link href="/" className="p-4 relative cursor-pointer text-3xl hover:text-4xl ">
+  return (
+    <>
+      {pathname !== "/" && !pathname.startsWith("/recipe") && (
+        <div className={`basis-[60px] bg-gradient-to-b from-[#cacaca] to-transparent flex flex-nowrap justify-between w-[100%] overflow-x-hidden`}>
+          {/* <Link href="/" className="p-4 relative cursor-pointer text-3xl hover:text-4xl ">
             <TiThMenu className="transition-all absolute left-0" />
           </Link> */}
-            <Link href="/dashboard" className={`flex flex-col pt-1 cursor-pointer select-none relative ml-2 `}>
-              <h1 className="m-0 text-3xl text-center text-white py-1 px-4 rounded-lg logoC">myFlavour</h1>
-              <h2 className="text-center bg-white rounded-lg leading-[1px] absolute top-[40px] left-[50%] -translate-x-[25%] whitespace-nowrap p-[7px] border-b-2">by Fimiar</h2>
+          <Link
+            href="/dashboard"
+            className={`flex flex-col pt-1 cursor-pointer select-none relative ml-2 active:scale-[.9] transition`}
+          >
+            <h1 className="m-0 text-3xl text-center text-white py-1 px-4 rounded-lg logoC">myFlavour</h1>
+            <h2 className="text-center bg-white rounded-lg leading-[1px] absolute top-[40px] left-[50%] -translate-x-[25%] whitespace-nowrap p-[7px] border-b-2">by Fimiar</h2>
+          </Link>
+          <div className="grid grid-cols-2 gap-2 ">
+            <Link
+              href="/profile"
+              className="relative flex cursor-pointer text-3xl hover:text-4xl "
+            >
+              {user.photoURL  ? (
+                <img
+                  className="m-auto h-[40px] w-[40px] rounded-full"
+                  src={user.photoURL}
+                  alt="Chef Cat"
+                />
+              ) : (
+                <SiCodechef className="transition-all absolute right-0 my-auto text-[50px] border-2 border-white rounded-full p-2" />
+              )}
             </Link>
-            <div className="grid grid-cols-2 gap-2">
-              <Link href="/profile" className="relative flex cursor-pointer text-3xl hover:text-4xl ">
-                {user.photoURL !== "" ? <img className="m-auto h-[40px] w-[40px] rounded-full" src={user.photoURL} alt="Chef Cat" /> : <SiCodechef className="transition-all absolute right-0" />}
-              </Link>
-              <Link href="/" onClick={handleSignout} className="p-4 relative cursor-pointer text-3xl hover:text-4xl ">
-                <MdLogout className="transition-all absolute left-0" />
-              </Link>
-            </div>
+            <Link
+              href="/"
+              onClick={handleSignout}
+              className="p-4 relative cursor-pointer text-3xl hover:text-4xl "
+            >
+              <MdLogout className="transition-all absolute left-0" />
+            </Link>
           </div>
-        )}
-      </>
-    );
+        </div>
+      )}
+    </>
+  );
 }
 
 function BotNav() {
   const { user } = useContext(AppContext);
   const pathname = usePathname();
-  if (user)
-    return (
-      <>
-        {pathname !== "/" && (
-          <div className={`basis-[100px] bg-gradient-to-t from-[#cacaca] to-transparent flex flex-nowrap justify-evenly w-[100%] border-t-2 overflow-x-hidden`}>
-            <Link href="/dashboard" className={`${pathname === "/dashboard" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}>
-              <TbNavigationPin className={`${pathname === "/dashboard" ? " " : "grayscale opacity-40"} text-blue-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
-            </Link>
-            {/* <span className="rounded-full h-[100%] w-[3px] bg-black/5"></span> */}
-            <Link href="/favorites" className={`${pathname === "/favorites" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}>
-              <FcLike className={`${pathname === "/favorites" ? "text-red-600 " : "grayscale opacity-40"} transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
-            </Link>
-            {/* <span className="rounded-full h-[100%] w-[3px] bg-black/5"></span> */}
-            <Link href="/search" className={`${pathname === "/search" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}>
-              <GiArchiveResearch className={`${pathname === "/search" ? " " : "grayscale opacity-40"} text-orange-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
-            </Link>
-          </div>
-        )}
-      </>
-    );
+  return (
+    <>
+      {pathname !== "/" && (
+        <div className={`basis-[100px] bg-gradient-to-t from-[#cacaca] to-transparent flex flex-nowrap justify-evenly w-[100%] border-t-2 overflow-x-hidden`}>
+          <Link
+            href="/dashboard"
+            className={`${pathname === "/dashboard" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}
+          >
+            <TbNavigationPin className={`${pathname === "/dashboard" ? " " : "grayscale opacity-40"} text-blue-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
+          </Link>
+          {/* <span className="rounded-full h-[100%] w-[3px] bg-black/5"></span> */}
+          <Link
+            href="/favorites"
+            className={`${pathname === "/favorites" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}
+          >
+            <FcLike className={`${pathname === "/favorites" ? "text-red-600 " : "grayscale opacity-40"} transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
+          </Link>
+          {/* <span className="rounded-full h-[100%] w-[3px] bg-black/5"></span> */}
+          <Link
+            href="/search"
+            className={`${pathname === "/search" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}
+          >
+            <GiArchiveResearch className={`${pathname === "/search" ? " " : "grayscale opacity-40"} text-orange-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
+          </Link>
+        </div>
+      )}
+    </>
+  );
 }

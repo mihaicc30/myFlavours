@@ -4,6 +4,34 @@ import Link from "next/link";
 import { Fragment } from "react";
 import Image from "next/image";
 
+export async function toggleFavThisItem(itemID, userUID) {
+  const userQuery = query(collection(db, "users"), where("uid", "==", userUID));
+  const userQuerySnapshot = await getDocs(userQuery);
+  let itemData = userQuerySnapshot.docs.map((element) => element.data())[0].faved;
+  const userDocRef = userQuerySnapshot.docs[0].ref;
+  if (itemData[itemID]) {
+    //unfav it
+    delete itemData[itemID];
+    await updateDoc(userDocRef, { faved: itemData });
+  } else {
+    //fav it
+    await updateDoc(userDocRef, {
+      faved: {
+        ...itemData,
+        [itemID]: {
+          date: new Date().toISOString(),
+        },
+      },
+    });
+  }
+}
+
+export async function isFaved(itemID, userUID) {
+  const userQuery = query(collection(db, "users"), where("uid", "==", userUID));
+  const userQuerySnapshot = await getDocs(userQuery);
+  const itemData = userQuerySnapshot.docs.map((element) => element.data())[0].faved;
+  return itemData[itemID] ? true : false;
+}
 export async function addToRecentViewed(itemID, author) {
   if (!author || !itemID) return;
   const q = await query(collection(db, "recipes"), where("id", "==", parseInt(itemID)));
@@ -37,7 +65,10 @@ export async function UserFaved(params) {
   // await new Promise(resolve=>setTimeout(resolve, 4000))
   const favedRecipes = await getUserFaved(params.author);
   return (
-    <Link href={"/favorites"} className={`morphx p-1 border-2 rounded-xl`}>
+    <Link
+      href={"/favorites"}
+      className={`morphx p-1 border-2 rounded-xl`}
+    >
       {favedRecipes} {favedRecipes < 1 ? "Flavorites" : favedRecipes > 1 ? "Flavorites" : "Flavorite"}
     </Link>
   );
@@ -154,39 +185,86 @@ async function getRecentlyViewed(author) {
   return data.recentlyViewed;
 }
 
-async function getFlavourites(author) {
+export async function getFlavourites(author) {
   if (!author) return [];
-  const q = await query(collection(db, "users"), where("uid", "==", author.uid));
-  const result = await getDocs(q);
-  const data = result.docs.map((element) => element.data())[0];
-  console.log(Object.values(data.faved));
-  return Object.values(data.faved);
+  const userQuery = await query(collection(db, 'users'), where('uid', '==', author.uid));
+  const userResult = await getDocs(userQuery);
+
+  const userData = userResult.docs[0].data();
+  const favedRecipeData = userData.faved || {};
+
+  // Extract recipe IDs from the faved object
+  const favedRecipeIds = Object.keys(favedRecipeData);
+
+  // Query the recipes collection for each faved recipe ID
+  const recipesPromises = favedRecipeIds.map(async (recipeId) => {
+    const recipeQuery = await query(collection(db, 'recipes'), where('id', '==', parseInt(recipeId)));
+    const recipeResult = await getDocs(recipeQuery);
+
+    // if (recipeResult.empty) {
+    //   console.log(`Recipe not found for ID: ${recipeId}`);
+    //   return null;
+    // }
+
+    return recipeResult.docs[0].data();
+  });
+  const recipesData = await Promise.all(recipesPromises);
+  console.log("Faved Recipes:", recipesData);
+
+  return recipesData;
 }
 
-function RecipeCard({ recipe, params, measure }) {
-  // console.log(params)
+export function RecipeCard({ recipe, params, measure }) {
   return (
-    <Link href={`/recipe/${recipe?.id}`} key={crypto.randomUUID()} className={`morphx grid grid-cols-1 grid-rows-[10px_30px_200px_80px] border-2 px-1 py-2 rounded-xl min-w-[280px] m-1 max-sm:min-w-[220px]`}>
+    <Link
+      href={`/recipe/${recipe?.id}`}
+      key={crypto.randomUUID()}
+      className={`morphx grid grid-cols-1 grid-rows-[10px_30px_200px_80px] border-2 px-1 py-2 rounded-xl min-w-[280px] m-1 max-sm:min-w-[220px]`}
+    >
       <p className="text-[9px] text-end">{new Date(recipe?.date).toLocaleString()}</p>
       <h1 className="capitalize max-sm:text-sm p-2">{recipe.dishName}</h1>
       {/* {recipe.imgs[0] && <img src="./img1.jpg" alt="someimg" />} */}
-      <img className="m-auto rounded-lg aspect-1/1 max-h-[190px]" src={`https://generatorfun.com/code/uploads/Random-Food-image-${Math.floor(Math.random() * 15) + 1}.jpg`} alt="someimg" />
+      <img
+        className="m-auto rounded-lg aspect-1/1 max-h-[190px]"
+        src={`https://generatorfun.com/code/uploads/Random-Food-image-${Math.floor(Math.random() * 15) + 1}.jpg`}
+        alt="someimg"
+      />
       <div className="grid grid-cols-[1fr_2px_1fr] grid-rows-[26px_2px_26px] gap-2 min-w-[264px] max-sm:min-w-[180px] mt-auto">
         <div className="flex flex-nowrap relative w-[100%]">
           <div className={`grid grid-cols-5 w-[100%] text-[16px] max-sm:text-[10px] items-center justify-items-center`}>
-            <span role="img" aria-label="rating" className={`${recipe.ratings.avgScore >= 1 ? "" : "opacity-10"}`}>
+            <span
+              role="img"
+              aria-label="rating"
+              className={`${recipe.ratings.avgScore >= 1 ? "" : "opacity-10"}`}
+            >
               ⭐
             </span>
-            <span role="img" aria-label="rating" className={`${recipe.ratings.avgScore >= 2 ? "" : "opacity-10"}`}>
+            <span
+              role="img"
+              aria-label="rating"
+              className={`${recipe.ratings.avgScore >= 2 ? "" : "opacity-10"}`}
+            >
               ⭐
             </span>
-            <span role="img" aria-label="rating" className={`${recipe.ratings.avgScore >= 3 ? "" : "opacity-10"}`}>
+            <span
+              role="img"
+              aria-label="rating"
+              className={`${recipe.ratings.avgScore >= 3 ? "" : "opacity-10"}`}
+            >
               ⭐
             </span>
-            <span role="img" aria-label="rating" className={`${recipe.ratings.avgScore >= 4 ? "" : "opacity-10"}`}>
+            <span
+              role="img"
+              aria-label="rating"
+              className={`${recipe.ratings.avgScore >= 4 ? "" : "opacity-10"}`}
+            >
               ⭐
             </span>
-            <span role="img" aria-label="rating" className={`${recipe.ratings.avgScore >= 5 ? "" : "opacity-10"}`}>
+            <span
+              role="img"
+              aria-label="rating"
+              className={`${recipe.ratings.avgScore >= 5 ? "" : "opacity-10"}`}
+            >
               ⭐
             </span>
           </div>
@@ -229,7 +307,10 @@ function RecipeCard({ recipe, params, measure }) {
             for (const [unit, amount] of Object.entries(ingredientDetails)) {
               if (unit === measure)
                 return (
-                  <span className="px-2" key={crypto.randomUUID()}>
+                  <span
+                    className="px-2"
+                    key={crypto.randomUUID()}
+                  >
                     {amount} {unit} x <span className="capitalize">{ingredientName}</span>
                   </span>
                 );
@@ -241,7 +322,10 @@ function RecipeCard({ recipe, params, measure }) {
         <div className={`flex flex-col text-sm py-2 my-2`}>
           <p className="px-2 my-2">Steps</p>
           {recipe.instructions.map((instr, index) => (
-            <p className="px-2" key={crypto.randomUUID()}>
+            <p
+              className="px-2"
+              key={crypto.randomUUID()}
+            >
               {index + 1}. {instr}
             </p>
           ))}
@@ -254,7 +338,11 @@ function RecipeCard({ recipe, params, measure }) {
 export function FeaturedRecipeCard({ recipe, params, measure }) {
   console.log(params);
   return (
-    <div key={crypto.randomUUID()} className={`grow flex flex-col pt-10 rounded-t-xl min-w-[280px] max-sm:min-w-[220px] bg-cover bg-top`} style={{ backgroundImage: `url(https://generatorfun.com/code/uploads/Random-Food-image-2.jpg)` }}>
+    <div
+      key={crypto.randomUUID()}
+      className={`grow flex flex-col pt-10 rounded-t-xl min-w-[280px] max-sm:min-w-[220px] bg-cover bg-top`}
+      style={{ backgroundImage: `url(https://generatorfun.com/code/uploads/Random-Food-image-2.jpg)` }}
+    >
       {/* {recipe?.imgs[0] && <img src="./img1.jpg" alt="someimg" />} */}
       {/* <Image
         className="rounded-lg aspect-1/1 max-h-[200px] scale-[1.5]"
@@ -270,19 +358,39 @@ export function FeaturedRecipeCard({ recipe, params, measure }) {
         <div className="grid grid-cols-[1fr_2px_1fr] gap-2 min-w-[264px] max-sm:min-w-[180px]">
           <div className="flex flex-nowrap relative w-[100%]">
             <div className={`grid grid-cols-5 w-[100%] text-[16px] max-sm:text-[10px] items-center justify-items-center`}>
-              <span role="img" aria-label="rating" className={`${recipe?.ratings.avgScore >= 1 ? "" : "opacity-10"}`}>
+              <span
+                role="img"
+                aria-label="rating"
+                className={`${recipe?.ratings.avgScore >= 1 ? "" : "opacity-10"}`}
+              >
                 ⭐
               </span>
-              <span role="img" aria-label="rating" className={`${recipe?.ratings.avgScore >= 2 ? "" : "opacity-10"}`}>
+              <span
+                role="img"
+                aria-label="rating"
+                className={`${recipe?.ratings.avgScore >= 2 ? "" : "opacity-10"}`}
+              >
                 ⭐
               </span>
-              <span role="img" aria-label="rating" className={`${recipe?.ratings.avgScore >= 3 ? "" : "opacity-10"}`}>
+              <span
+                role="img"
+                aria-label="rating"
+                className={`${recipe?.ratings.avgScore >= 3 ? "" : "opacity-10"}`}
+              >
                 ⭐
               </span>
-              <span role="img" aria-label="rating" className={`${recipe?.ratings.avgScore >= 4 ? "" : "opacity-10"}`}>
+              <span
+                role="img"
+                aria-label="rating"
+                className={`${recipe?.ratings.avgScore >= 4 ? "" : "opacity-10"}`}
+              >
                 ⭐
               </span>
-              <span role="img" aria-label="rating" className={`${recipe?.ratings.avgScore >= 5 ? "" : "opacity-10"}`}>
+              <span
+                role="img"
+                aria-label="rating"
+                className={`${recipe?.ratings.avgScore >= 5 ? "" : "opacity-10"}`}
+              >
                 ⭐
               </span>
             </div>
@@ -336,7 +444,10 @@ export function FeaturedRecipeCard({ recipe, params, measure }) {
         </div>
         <div className={`flex flex-col text-sm my-2`}>
           {recipe.instructions.map((instr, index) => (
-            <div className="ml-4 pl-6 pr-2 relative border-l-2 border-dashed border-black" key={crypto.randomUUID()}>
+            <div
+              className="ml-4 pl-6 pr-2 relative border-l-2 border-dashed border-black"
+              key={crypto.randomUUID()}
+            >
               <span className="absolute -left-[11px]">⚪</span>
               <p className="font-[600]">Step {index + 1}</p>
               <p className="mb-2">{instr}</p>
@@ -391,7 +502,11 @@ export async function RecipeList(params) {
         params?.action !== "GetFeatured" &&
         recipes?.map((recipeData, index) => (
           <Fragment key={crypto.randomUUID()}>
-            <RecipeCard measure={measure} params={params} recipe={recipeData} />
+            <RecipeCard
+              measure={measure}
+              params={params}
+              recipe={recipeData}
+            />
           </Fragment>
         ))}
       {/* {recipes?.length > 0 && params?.action === "GetFeatured" && (

@@ -36,3 +36,30 @@ body {
   box-shadow: inset 5px 5px 10px #0f7033, inset -5px -5px 10px #1dd661;
   text-shadow: 2px 3px 7px black;
 }
+
+/* Custom styles for Webkit browsers (Chrome, Safari) */
+*::-webkit-scrollbar {
+  margin: 10px 0;
+  width: 12px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #4a5568; /* Change the color as needed */
+  border-radius: 50px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: #cbd5e0; /* Change the color as needed */
+  margin: 10px;
+  border-radius: 50px;
+}
+
+/* Custom styles for non-Webkit browsers */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #4a5568 #cbd5e0; /* Change the colors as needed */
+}
+
+*:hover {
+  scrollbar-color: #2d3748 #a0aec0; /* Change the colors on hover as needed */
+}

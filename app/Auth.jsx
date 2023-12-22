@@ -32,8 +32,9 @@ export default function Auth() {
         {!user ? (
           <>
             <Suspense fallback={<CustomLoading />}>
-              <Clcomp />
+              <GoogleSignIn />
             </Suspense>
+            <UNPSignIn />
             <Suspense fallback={<CustomLoading />}>
               <AuthComps />
             </Suspense>
@@ -47,7 +48,7 @@ export default function Auth() {
   );
 }
 
-const Clcomp = async () => {
+const GoogleSignIn = async () => {
   const handleSignIn = async () => {
     await signInWithGoogle();
   };
@@ -60,6 +61,25 @@ const Clcomp = async () => {
   );
 };
 
+const UNPSignIn = async () => {
+  const { user, updateContext } = useContext(AppContext);
+  const handleSignIn = async () => {
+    updateContext({
+      user: {
+        uid: "Ph2SHD5U5LQHAsrOsMxZsgYcsH12",
+        email: "alemihai25@gmail.com",
+        displayName: "mihai c",
+      },
+    });
+  };
+
+  return (
+    <button className={`text-green-600 flex flex-nowrap gap-2 justify-center items-center border-2 rounded-xl mx-auto p-4`} onClick={handleSignIn}>
+      <FcGoogle className="text-3xl my-auto" />
+      Sign In TestUser
+    </button>
+  );
+};
 const Loading = () => {
   return (
     <div className="flex flex-col justify-center items-center">
