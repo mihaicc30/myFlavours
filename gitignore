@@ -1,0 +1,8 @@
+.DS_Store
+/node_modules/
+/.vscode/
+/platforms/
+/.next/
+/public/plugins
+/public/cordova_plugins.js
+/public/cordova.js

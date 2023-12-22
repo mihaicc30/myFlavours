@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.morphx {
+  border-radius: 16px;
+  /* background: linear-gradient(145deg, #cacaca, #f0f0f0); */
+  box-shadow: 9px 9px 18px #5a5a5a, -9px -9px 18px #ffffff;
+}
+
+.morphx2 {
+  border-radius: 16px;
+  background: #e0e0e0;
+  box-shadow: inset 5px 5px 10px #9b9b9b, inset -5px -5px 10px #ffffff;
+}
+
+.morphx3 {
+  background: linear-gradient(145deg, #cacaca, #f0f0f0);
+  box-shadow: 9px 9px 18px #5a5a5a, -9px -9px 18px #ffffff;
+}
+
+.logoC {
+  border-radius: 32px;
+  background: #16a34a;
+  box-shadow: inset 5px 5px 10px #0f7033, inset -5px -5px 10px #1dd661;
+  text-shadow: 2px 3px 7px black;
+}
