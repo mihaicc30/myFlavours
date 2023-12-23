@@ -1,30 +1,32 @@
 "use client";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, { useContext, useState } from "react";
 import { RecipeCard, getFlavourites } from "../CompsServer";
 import { AppContext } from "../AppContextWrapper";
 import { usePathname } from "next/navigation";
 import { IoMdSearch } from "react-icons/io";
 import { TiDelete } from "react-icons/ti";
+import CustomLoading from "../CustomLoading";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 const Favorites = () => {
   const { user } = useContext(AppContext);
-  const pathname = usePathname();
-  const [faved, setFaved] = useState([]);
   const [search, setSearch] = useState("");
-
-  const getFaved = useCallback(async () => {
-    if (!user) return;
-    let query = await getFlavourites(user);
-    setFaved(query);
-  }, [user]);
-
-  useEffect(() => {
-    getFaved();
-  }, [getFaved]);
 
   const clearSearch = () => {
     setSearch("");
   };
+
+  const {
+    isPending,
+    error,
+    data: recipes,
+  } = useSuspenseQuery({
+    queryKey: ["recipes", user, search],
+    queryFn: () => {
+      const recipes = getFlavourites(user, search);
+      return recipes;
+    },
+  });
 
   return (
     <>
@@ -43,17 +45,23 @@ const Favorites = () => {
             className="absolute top-1/2 -translate-y-1/2 right-[10px] p-2 text-4xl cursor-pointer active:scale-[.9] transition"
           />
         </div>
-        {faved.length > 0 &&
-          faved.map((recipeData, index) => {
-            if (recipeData.dishName.toLowerCase().includes(search.toLowerCase()) || search === "")
-              return (
-                <RecipeCard
-                  key={index}
-                  recipe={recipeData}
-                  measure={"grams"}
-                />
-              );
-          })}
+        {isPending ? (
+          <CustomLoading />
+        ) : (
+          recipes &&
+          recipes.length > 0 &&
+          recipes.map((recipeData, index) => {
+            return (
+              <RecipeCard
+                key={index}
+                recipe={recipeData}
+                measure="grams"
+              />
+            );
+          })
+        )}
+        {recipes && recipes.length < 1 && <p className="text-center text-xl font-[600] col-span-full">You nave no flavorites!</p>}
+        {error && <p>An error has occurred: {error.message}</p>}
       </div>
     </>
   );

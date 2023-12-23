@@ -1,16 +1,13 @@
 "use client";
-import { Suspense, createContext, useContext, useEffect, useState } from "react";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { app, auth, logOut } from "./firebaseConfig";
+import { createContext, useContext, useEffect, useState } from "react";
+import { auth, logOut } from "./firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
 export const AppContext = createContext();
 
 export function AppContextWrapper({ children }) {
-  // const zzz = useAuthState(app);
   const [contextValues, setContextValues] = useState({
     user: false,
   });
-  // const [contextValues, setContextValues] = useState("aaaaaaaa");
 
   const updateContext = (newValues) => {
     setContextValues((prevValues) => ({
@@ -22,17 +19,8 @@ export function AppContextWrapper({ children }) {
   useEffect(() => {
     // Subscribe to auth state changes
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (auth.currentUser) {
-        if (contextValues.user?.uid !== user.uid) {
-          // console.log("updating user")
-          updateContext({ user });
-        } else {
-          // console.log("not updating user", "user the same")
-        }
-        // User is signed in
-      } else {
-        // console.log("user is not auth")
-        // User is signed out
+      if (auth.currentUser && contextValues.user?.uid !== user.uid) {
+        updateContext({ user });
       }
     });
 
@@ -51,7 +39,7 @@ export function AppContextWrapper({ children }) {
   );
 }
 
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { SiCodechef } from "react-icons/si";
 import { TbNavigationPin } from "react-icons/tb";
 import { GiArchiveResearch } from "react-icons/gi";
@@ -62,7 +50,6 @@ import Link from "next/link";
 function TopNav() {
   const { user, updateContext } = useContext(AppContext);
   const pathname = usePathname();
-  const { push } = useRouter();
 
   const handleSignout = async () => {
     await logOut();
@@ -78,7 +65,7 @@ function TopNav() {
           </Link> */}
           <Link
             href="/dashboard"
-            className={`flex flex-col pt-1 cursor-pointer select-none relative ml-2 active:scale-[.9] transition`}
+            className={`flex flex-col pt-1 cursor-pointer select-none relative ml-2 hover:scale-[0.98] active:scale-[.9] transition`}
           >
             <h1 className="m-0 text-3xl text-center text-white py-1 px-4 rounded-lg logoC">myFlavour</h1>
             <h2 className="text-center bg-white rounded-lg leading-[1px] absolute top-[40px] left-[50%] -translate-x-[25%] whitespace-nowrap p-[7px] border-b-2">by Fimiar</h2>
@@ -88,7 +75,8 @@ function TopNav() {
               href="/profile"
               className="relative flex cursor-pointer text-3xl hover:text-4xl "
             >
-              {user.photoURL  ? (
+              {user.photoURL ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   className="m-auto h-[40px] w-[40px] rounded-full"
                   src={user.photoURL}
@@ -113,29 +101,26 @@ function TopNav() {
 }
 
 function BotNav() {
-  const { user } = useContext(AppContext);
   const pathname = usePathname();
   return (
     <>
       {pathname !== "/" && (
-        <div className={`basis-[100px] bg-gradient-to-t from-[#cacaca] to-transparent flex flex-nowrap justify-evenly w-[100%] border-t-2 overflow-x-hidden`}>
+        <div className={`basis-[100px] px-10 bg-gradient-to-t from-[#cacaca] to-transparent flex flex-nowrap justify-evenly w-[100%] border-t-2 overflow-x-hidden`}>
           <Link
             href="/dashboard"
-            className={`${pathname === "/dashboard" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}
+            className={`${pathname === "/dashboard" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
           >
             <TbNavigationPin className={`${pathname === "/dashboard" ? " " : "grayscale opacity-40"} text-blue-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
           </Link>
-          {/* <span className="rounded-full h-[100%] w-[3px] bg-black/5"></span> */}
           <Link
             href="/favorites"
-            className={`${pathname === "/favorites" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}
+            className={`${pathname === "/favorites" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
           >
             <FcLike className={`${pathname === "/favorites" ? "text-red-600 " : "grayscale opacity-40"} transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
           </Link>
-          {/* <span className="rounded-full h-[100%] w-[3px] bg-black/5"></span> */}
           <Link
             href="/search"
-            className={`${pathname === "/search" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex`}
+            className={`${pathname === "/search" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
           >
             <GiArchiveResearch className={`${pathname === "/search" ? " " : "grayscale opacity-40"} text-orange-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
           </Link>

@@ -1,29 +1,54 @@
 "use client";
-import { Suspense, useState } from "react";
-import { RecipeList } from "../CompsServer";
+import { useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { RecipeCard, getRecipesQuery } from "../CompsServer";
 import SearchButton from "./SearchButton";
 import CustomLoading from "../CustomLoading";
-// import {SearchButton} from "./SearchButton"
-
-// https://github.com/HamedBahram/next-pagination/blob/main/app/movies/page.tsx
+import { useSearchParams } from 'next/navigation'
 
 const Search = () => {
-  const [nameQuery, setNameQuery] = useState("");
+  const searchParams = useSearchParams()
+  const search = searchParams.get('query')
+  
+  const [nameQuery, setNameQuery] = useState(search || "");
+ 
+
+  const {
+    isPending,
+    error,
+    data: recipes,
+  } = useSuspenseQuery({
+    queryKey: ["recipes", 10, nameQuery, search],
+    queryFn: () => {
+      const recipes = getRecipesQuery(10, null, null, nameQuery);
+      return recipes;
+    },
+  });
+
   return (
     <div className={`grid grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-2 px-2 pt-2 pb-6 overflow-x-hidden`}>
       <SearchButton
         searchQuery={nameQuery}
         setSearchQuery={setNameQuery}
       />
-      <Suspense fallback={<CustomLoading />}>
-        <RecipeList
-          action={"SearchRecipes"}
-          filterWord={nameQuery}
-          items={10}
-          showInstructions={false}
-          showIngredients={false}
-        />
-      </Suspense>
+      {isPending ? (
+        <CustomLoading />
+      ) : (
+        <>
+          {recipes &&
+            recipes.map((recipe) => {
+              return (
+                <RecipeCard
+                  key={crypto.randomUUID()}
+                  recipe={recipe}
+                  measure="grams"
+                />
+              );
+            })}
+          {recipes && recipes.length < 1 && <p className="text-center col-span-full">No recipes with name &rdquo;{nameQuery}&rdquo;.</p>}
+          {error && <p>An error has occurred: {error.message}</p>}
+        </>
+      )}
     </div>
   );
 };

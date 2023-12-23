@@ -7,13 +7,12 @@
     "deploy": "firebase deploy --only hosting",
     "build": "next build",
     "start": "next start",
-
     "export": "next build && next export",
     "build-cordova": "nextjs-cordova-generator",
-    
     "lint": "next lint"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.14.2",
     "cordova": "^12.0.0",
     "firebase": "^10.7.1",
     "next": "14.0.4",

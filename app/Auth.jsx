@@ -1,12 +1,14 @@
 import React, { Suspense, useContext, useEffect } from "react";
 import { FcGoogle } from "react-icons/fc";
+import { RiUserShared2Fill } from "react-icons/ri";
 import { FaFacebook } from "react-icons/fa";
 import Image from "next/image";
 import CustomLoading from "./CustomLoading";
-import { GetCountRecipes, GetCountUsers } from "./CompsServer";
+import { getCountRecipe, getCountUser } from "./CompsServer";
 import { signInWithGoogle } from "./firebaseConfig";
 import { AppContext } from "./AppContextWrapper";
 import { useRouter, usePathname } from "next/navigation";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export default function Auth() {
   const { user, updateContext } = useContext(AppContext);
@@ -21,7 +23,13 @@ export default function Auth() {
     <div className={`flex flex-col gap-4 h-[100svh] w-[100svw]`}>
       <div className="flex flex-col my-auto gap-4">
         <div className="relative w-[20svw] h-[25svh] mx-auto min-w-[200px] min-h-[150px]">
-          <Image priority={true} src="/intro.png" alt="" fill={true} sizes="w-[20svw] h-[25svh]" />
+          <Image
+            priority={true}
+            src="/intro.png"
+            alt=""
+            fill={true}
+            sizes="w-[20svw] h-[25svh]"
+          />
         </div>
         <p className={`text-center text-xl text-green-600`}>
           Welcome to
@@ -33,8 +41,8 @@ export default function Auth() {
           <>
             <Suspense fallback={<CustomLoading />}>
               <GoogleSignIn />
+              <UNPSignIn />
             </Suspense>
-            <UNPSignIn />
             <Suspense fallback={<CustomLoading />}>
               <AuthComps />
             </Suspense>
@@ -54,7 +62,10 @@ const GoogleSignIn = async () => {
   };
 
   return (
-    <button className={`text-green-600 flex flex-nowrap gap-2 justify-center items-center border-2 rounded-xl mx-auto p-4`} onClick={handleSignIn}>
+    <button
+      className={`text-green-600 flex flex-nowrap gap-2 justify-center items-center border-2 rounded-xl mx-auto p-4`}
+      onClick={handleSignIn}
+    >
       <FcGoogle className="text-3xl my-auto" />
       Sign In with Google
     </button>
@@ -66,17 +77,20 @@ const UNPSignIn = async () => {
   const handleSignIn = async () => {
     updateContext({
       user: {
-        uid: "Ph2SHD5U5LQHAsrOsMxZsgYcsH12",
-        email: "alemihai25@gmail.com",
-        displayName: "mihai c",
+        uid: "dasiuh1iuiudqwiuiuwqdjiu",
+        email: "test@user.test",
+        displayName: "TestUser",
       },
     });
   };
 
   return (
-    <button className={`text-green-600 flex flex-nowrap gap-2 justify-center items-center border-2 rounded-xl mx-auto p-4`} onClick={handleSignIn}>
-      <FcGoogle className="text-3xl my-auto" />
-      Sign In TestUser
+    <button
+      className={`text-green-600 flex flex-nowrap gap-2 justify-center items-center border-2 rounded-xl mx-auto p-4`}
+      onClick={handleSignIn}
+    >
+      <RiUserShared2Fill className="text-3xl my-auto" />
+      Sign in as TestUser
     </button>
   );
 };
@@ -90,14 +104,43 @@ const Loading = () => {
 };
 
 function AuthComps() {
+  const { user } = useContext(AppContext);
+
+  const {
+    isPending,
+    error,
+    data: ownRecipes,
+  } = useSuspenseQuery({
+    queryKey: ["recipes", user],
+    queryFn: () => {
+      const recipes = getCountRecipe(user);
+      return recipes;
+    },
+  });
+
+  const { data: userCount } = useSuspenseQuery({
+    queryKey: ["users", "getTotalUsers", user],
+    queryFn: () => {
+      const recipes = getCountUser();
+      return recipes;
+    },
+  });
+
   return (
-    <div className={`flex flex-nowrap justify-center gap-2 relative my-2 max-w-[100svw]`}>
-      <Suspense fallback={<Loading />}>
-        <GetCountRecipes />
-      </Suspense>
-      <Suspense fallback={<Loading />}>
-        <GetCountUsers />
-      </Suspense>
+    <div className={`flex flex-col justify-center gap-2 relative my-2 max-w-[100svw]`}>
+      <p className="text-center text-xl font-[600]">Join our community!</p>
+      <div className="flex gap-2 justify-center">
+        <Suspense fallback={<Loading />}>
+          <div className={`morphx p-1 border-2 rounded-xl`}>
+            {ownRecipes} {ownRecipes < 1 ? "Recipes" : ownRecipes > 1 ? "Recipes" : "Recipe"}
+          </div>
+        </Suspense>
+        <Suspense fallback={<Loading />}>
+          <span className={`morphx p-1 border-2 rounded-xl`}>
+            {userCount} {userCount < 1 ? "Users" : userCount > 1 ? "Users" : "User"}
+          </span>
+        </Suspense>
+      </div>
     </div>
   );
 }

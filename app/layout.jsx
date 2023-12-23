@@ -2,6 +2,8 @@
 import "./globals.css";
 
 import { AppContextWrapper } from "./AppContextWrapper";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+const queryClient = new QueryClient()
 
 // export const metadata = {
 //   title: "myFlavour - by Fimiar",
@@ -9,14 +11,13 @@ import { AppContextWrapper } from "./AppContextWrapper";
 // };
 
 export default function RootLayout({ children }) {
-
-
-  
   return (
     <html lang="en">
-      <body>
-        <AppContextWrapper>{children}</AppContextWrapper>
-      </body>
+      <QueryClientProvider client={queryClient}>
+        <body>
+          <AppContextWrapper>{children}</AppContextWrapper>
+        </body>
+      </QueryClientProvider>
     </html>
   );
 }

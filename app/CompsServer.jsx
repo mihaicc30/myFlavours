@@ -5,16 +5,20 @@ import { Fragment } from "react";
 import Image from "next/image";
 
 export async function toggleFavThisItem(itemID, userUID) {
+  console.log("Toggling fav item : ", itemID, userUID);
   const userQuery = query(collection(db, "users"), where("uid", "==", userUID));
   const userQuerySnapshot = await getDocs(userQuery);
   let itemData = userQuerySnapshot.docs.map((element) => element.data())[0].faved;
   const userDocRef = userQuerySnapshot.docs[0].ref;
   if (itemData[itemID]) {
     //unfav it
+
+    console.log("Removing item from fav list");
     delete itemData[itemID];
     await updateDoc(userDocRef, { faved: itemData });
   } else {
     //fav it
+    console.log("Adding item to fav list");
     await updateDoc(userDocRef, {
       faved: {
         ...itemData,
@@ -27,55 +31,62 @@ export async function toggleFavThisItem(itemID, userUID) {
 }
 
 export async function isFaved(itemID, userUID) {
+  console.log("Checking if item is faved : ", itemID, userUID);
   const userQuery = query(collection(db, "users"), where("uid", "==", userUID));
   const userQuerySnapshot = await getDocs(userQuery);
   const itemData = userQuerySnapshot.docs.map((element) => element.data())[0].faved;
+  console.log("Item in fav list === ", itemData[itemID] ? true : false);
   return itemData[itemID] ? true : false;
 }
-export async function addToRecentViewed(itemID, author) {
+export async function addToRecentViewed(itemID, author, itemDATA) {
   if (!author || !itemID) return;
-  const q = await query(collection(db, "recipes"), where("id", "==", parseInt(itemID)));
-  const result = await getDocs(q);
-  const itemData = result.docs.map((element) => element.data())[0];
+  console.log("Adding item to recent viewed list.", itemID, author.displayName);
+  if (itemDATA) {
+    const userDocRef = query(collection(db, "users"), where("uid", "==", author.uid));
+    const userDoc = await getDocs(userDocRef);
+    const userData = userDoc.docs.map((element) => element.data())[0];
 
-  const userDocRef = query(collection(db, "users"), where("uid", "==", author.uid));
-  const userDoc = await getDocs(userDocRef);
-  const userData = userDoc.docs.map((element) => element.data())[0];
-
-  let recentlyViewed = userData.recentlyViewed || [];
-  const itemIndex = recentlyViewed.findIndex((item) => item.id === itemData.id);
-  if (itemIndex < 0) {
-    if (recentlyViewed.length >= 3) {
-      recentlyViewed.shift();
+    let recentlyViewed = userData.recentlyViewed || [];
+    const itemIndex = recentlyViewed.findIndex((item) => item.id === itemDATA.id);
+    if (itemIndex < 0) {
+      if (recentlyViewed.length >= 3) {
+        recentlyViewed.shift();
+      }
+      recentlyViewed.push(itemDATA);
+      await updateDoc(userDoc.docs[0].ref, { recentlyViewed });
     }
-    recentlyViewed.push(itemData);
-    await updateDoc(userDoc.docs[0].ref, { recentlyViewed });
+  } else {
+    const q = await query(collection(db, "recipes"), where("id", "==", parseInt(itemID)));
+    const result = await getDocs(q);
+    const itemData = result.docs.map((element) => element.data())[0];
+
+    const userDocRef = query(collection(db, "users"), where("uid", "==", author.uid));
+    const userDoc = await getDocs(userDocRef);
+    const userData = userDoc.docs.map((element) => element.data())[0];
+
+    let recentlyViewed = userData.recentlyViewed || [];
+    const itemIndex = recentlyViewed.findIndex((item) => item.id === itemData.id);
+    if (itemIndex < 0) {
+      if (recentlyViewed.length >= 3) {
+        recentlyViewed.shift();
+      }
+      recentlyViewed.push(itemData);
+      await updateDoc(userDoc.docs[0].ref, { recentlyViewed });
+    }
   }
 }
 
-async function getUserFaved(author) {
+export async function getUserFaved(author) {
+  console.log("Grabbing user number of faved items.");
   if (!author) return 0;
-  const q = await query(collection(db, "users"), where("author.uid", "==", author.uid), orderBy("date", "desc"));
+  const q = await query(collection(db, "users"), where("uid", "==", author.uid));
   const result = await getDocs(q);
   const data = result.docs.map((element) => element.data());
-  return result.size;
+  return Object.keys(data[0].faved).length;
 }
 
-export async function UserFaved(params) {
-  // await new Promise(resolve=>setTimeout(resolve, 4000))
-  const favedRecipes = await getUserFaved(params.author);
-  return (
-    <Link
-      href={"/favorites"}
-      className={`morphx p-1 border-2 rounded-xl`}
-    >
-      {favedRecipes} {favedRecipes < 1 ? "Flavorites" : favedRecipes > 1 ? "Flavorites" : "Flavorite"}
-    </Link>
-  );
-}
-
-async function getTopRatedRecipes(numberOfItems) {
-  // console.log(`GRAB ${numberOfItems} ITEMS `);
+export async function getTopRatedRecipes(numberOfItems) {
+  console.log("Grabbing top rated recipes.");
   const q = await query(collection(db, "recipes"), orderBy("date", "desc"), limit(numberOfItems));
   const result = await getDocs(q);
   const data = result.docs.map((element) => element.data());
@@ -83,52 +94,31 @@ async function getTopRatedRecipes(numberOfItems) {
   return data;
 }
 
-async function getCountUser(author) {
-  if (author) {
-    const q = await query(collection(db, "users"), where("author.uid", "==", author.uid), orderBy("date", "desc"));
-    const result = await getDocs(q);
-    // const data = result.docs.map((element) => element.data());
-    return result.size;
-  } else {
-    const q = await query(collection(db, "users"), orderBy("date", "desc"));
-    const result = await getDocs(q);
-    return result.size;
-  }
+export async function getCountUser() {
+  console.log("Fetching number of users.");
+  const q = await query(collection(db, "users"), orderBy("date", "desc"));
+  const result = await getDocs(q);
+  return result.size;
 }
 
-export async function GetCountUsers(params) {
-  const countUsers = await getCountUser(params.author);
-  return (
-    <span className={`morphx p-1 border-2 rounded-xl`}>
-      {countUsers} {countUsers < 1 ? "Users" : countUsers > 1 ? "Users" : "User"}
-    </span>
-  );
-}
-
-async function getCountRecipe(author) {
+export async function getCountRecipe(author) {
+  // await new Promise(resolve=>setTimeout(resolve, 4000))
   if (author) {
+    console.log("Fetching number of recipes belonging to ", author.displayName);
     const q = await query(collection(db, "recipes"), where("author.uid", "==", author.uid), orderBy("date", "desc"));
     const result = await getDocs(q);
     // const data = result.docs.map((element) => element.data());
     return result.size;
   } else {
+    console.log("Fetching number of recipes.");
     const q = await query(collection(db, "recipes"), orderBy("date", "desc"));
     const result = await getDocs(q);
     return result.size;
   }
 }
 
-export async function GetCountRecipes(params) {
-  // await new Promise(resolve=>setTimeout(resolve, 2500))
-  const ownRecipes = await getCountRecipe(params.author);
-  return (
-    <span className={`morphx p-1 border-2 rounded-xl`}>
-      {ownRecipes} {ownRecipes < 1 ? "Recipes" : ownRecipes > 1 ? "Recipes" : "Recipe"} Submitted
-    </span>
-  );
-}
-
 export async function getRecipesByIdQuery(itemID) {
+  console.log("Grabbing recipes by id.");
   const q = await query(collection(db, "recipes"), where("id", "==", parseInt(itemID)));
   const result = await getDocs(q);
   const data = result.docs.map((element) => element.data());
@@ -136,12 +126,14 @@ export async function getRecipesByIdQuery(itemID) {
 }
 
 export async function getAllRecipes() {
+  console.log("Fetching all recipes.");
   const q = await query(collection(db, "recipes"));
   const result = await getDocs(q);
   const data = result.docs.map((element) => element.data());
   return data;
 }
 export async function getAllRecipesIds() {
+  console.log("Fetching all recipe ids.");
   const q = await query(collection(db, "recipes"));
   const result = await getDocs(q);
   const data = result.docs.map((element) => ({ id: String(element.data().id) }));
@@ -150,22 +142,24 @@ export async function getAllRecipesIds() {
 
 export async function getRecipesQuery(numberOfItems, idOfSpecificItem, author, filterWord) {
   if (idOfSpecificItem) {
-    console.log(`GRAB SPECIFIC ITEM with id ${idOfSpecificItem}.`);
+    console.log(`Fetching specific item with id ${idOfSpecificItem}.`);
     const q = query(collection(db, "recipes"), where("id", "==", parseInt(idOfSpecificItem)));
     const result = await getDocs(q);
     const data = result.docs.map((element) => element.data());
+
+    addToRecentViewed(data[0].id, author, data[0]);
     //   console.log(data)
     return data;
   } else {
     if (author) {
-      console.log("GRAB LIST OF ITEMS BELONGING TO", author);
+      console.log("Fetching recipes belonging to ", author.displayName);
       const q = await query(collection(db, "recipes"), where("author.uid", "==", author.uid), orderBy("date", "desc"), limit(numberOfItems));
       const result = await getDocs(q);
       const data = result.docs.map((element) => element.data());
       //   console.log(data)
       return data;
     } else {
-      // console.log(`GRAB ${numberOfItems} ITEMS `);
+      console.log(`Fetching ${numberOfItems} recipes.`);
       const q = await query(collection(db, "recipes"), orderBy("date", "desc"), limit(numberOfItems));
       const result = await getDocs(q);
       let data = result.docs.map((element) => element.data());
@@ -177,17 +171,20 @@ export async function getRecipesQuery(numberOfItems, idOfSpecificItem, author, f
   }
 }
 
-async function getRecentlyViewed(author) {
+export async function getRecentlyViewed(author) {
   if (!author) return [];
+  console.log("Fetching recently viewed items.");
   const q = await query(collection(db, "users"), where("uid", "==", author.uid));
   const result = await getDocs(q);
   const data = result.docs.map((element) => element.data())[0];
   return data.recentlyViewed;
 }
 
-export async function getFlavourites(author) {
+export async function getFlavourites(author, filterWord) {
   if (!author) return [];
-  const userQuery = await query(collection(db, 'users'), where('uid', '==', author.uid));
+
+  console.log("Fetching flavourites.");
+  const userQuery = await query(collection(db, "users"), where("uid", "==", author.uid));
   const userResult = await getDocs(userQuery);
 
   const userData = userResult.docs[0].data();
@@ -198,7 +195,7 @@ export async function getFlavourites(author) {
 
   // Query the recipes collection for each faved recipe ID
   const recipesPromises = favedRecipeIds.map(async (recipeId) => {
-    const recipeQuery = await query(collection(db, 'recipes'), where('id', '==', parseInt(recipeId)));
+    const recipeQuery = await query(collection(db, "recipes"), where("id", "==", parseInt(recipeId)));
     const recipeResult = await getDocs(recipeQuery);
 
     // if (recipeResult.empty) {
@@ -208,25 +205,38 @@ export async function getFlavourites(author) {
 
     return recipeResult.docs[0].data();
   });
-  const recipesData = await Promise.all(recipesPromises);
+  let recipesData = await Promise.all(recipesPromises);
+  if (filterWord && filterWord !== "") {
+    recipesData = recipesData.filter((item) => item.dishName.toLowerCase().includes(filterWord.toLowerCase()));
+  }
   console.log("Faved Recipes:", recipesData);
 
   return recipesData;
 }
 
 export function RecipeCard({ recipe, params, measure }) {
+  const formattedDate = new Date(recipe?.date).toLocaleString("en-GB", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+    second: "numeric",
+    hour12: true,
+  });
   return (
     <Link
       href={`/recipe/${recipe?.id}`}
       key={crypto.randomUUID()}
-      className={`morphx grid grid-cols-1 grid-rows-[10px_30px_200px_80px] border-2 px-1 py-2 rounded-xl min-w-[280px] m-1 max-sm:min-w-[220px]`}
+      className={`morphx grid grid-cols-1 grid-rows-[10px_30px_200px_80px] border-2 px-1 py-2 rounded-xl min-w-[280px] m-1 max-sm:min-w-[220px] hover:scale-[1.02] transition`}
     >
-      <p className="text-[9px] text-end">{new Date(recipe?.date).toLocaleString()}</p>
+      <p className="text-[9px] text-end">{formattedDate}</p>
       <h1 className="capitalize max-sm:text-sm p-2">{recipe.dishName}</h1>
       {/* {recipe.imgs[0] && <img src="./img1.jpg" alt="someimg" />} */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         className="m-auto rounded-lg aspect-1/1 max-h-[190px]"
-        src={`https://generatorfun.com/code/uploads/Random-Food-image-${Math.floor(Math.random() * 15) + 1}.jpg`}
+        src={`https://generatorfun.com/code/uploads/Random-Food-image-1.jpg`}
         alt="someimg"
       />
       <div className="grid grid-cols-[1fr_2px_1fr] grid-rows-[26px_2px_26px] gap-2 min-w-[264px] max-sm:min-w-[180px] mt-auto">
@@ -336,24 +346,15 @@ export function RecipeCard({ recipe, params, measure }) {
 }
 
 export function FeaturedRecipeCard({ recipe, params, measure }) {
-  console.log(params);
   return (
     <div
       key={crypto.randomUUID()}
-      className={`grow flex flex-col pt-10 rounded-t-xl min-w-[280px] max-sm:min-w-[220px] bg-cover bg-top`}
+      className={`grow flex flex-col pt-10 min-w-[280px] max-sm:min-w-[220px] bg-cover bg-top`}
       style={{ backgroundImage: `url(https://generatorfun.com/code/uploads/Random-Food-image-2.jpg)` }}
     >
-      {/* {recipe?.imgs[0] && <img src="./img1.jpg" alt="someimg" />} */}
-      {/* <Image
-        className="rounded-lg aspect-1/1 max-h-[200px] scale-[1.5]"
-        src={`https://generatorfun.com/code/uploads/Random-Food-image-1.jpg`}
-        alt="someimg"
-        loading="lazy"
-        fill={true}
-      /> */}
       <div className="block flex-[30%] relative min-h-[50svw]"></div>
       <div className={`grid grid-cols-1 border-t-2 py-2 pl-2 pr-4 rounded-t-3xl w-[100svw] max-sm:min-w-[220px] z-10 bg-white`}>
-        {/* <p className="text-[9px] text-end">{new Date(recipe?.date).toLocaleString()}</p> */}
+        {/* <p className="text-[9px] text-end">{new Date(recipe.date).toLocaleString()}</p> */}
         <h1 className="capitalize font-[600] p-2">{recipe?.dishName}</h1>
         <div className="grid grid-cols-[1fr_2px_1fr] gap-2 min-w-[264px] max-sm:min-w-[180px]">
           <div className="flex flex-nowrap relative w-[100%]">
@@ -485,16 +486,6 @@ export async function RecipeList(params) {
     default:
       break;
   }
-
-  if (params?.addToViewed && params?.id && params?.whoIsViewing) addToRecentViewed(params.id, params.whoIsViewing);
-  // const recipes =
-  // params.topRated
-  //     ? await getTopRatedRecipes(params.items)
-  //     : params.recentlyViewed
-  //         ? await getRecentlyViewed(params.author)
-  //         : params.getFlavourites
-  //         ? await getFlavourites(params.loggedUser)
-  //         : await getRecipesQuery(params.items, params.id, params.author, params.filterWord);
 
   return (
     <>
