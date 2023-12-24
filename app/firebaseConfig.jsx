@@ -31,7 +31,6 @@ const signInWithGoogle = async () => {
   try {
     const res = await signInWithPopup(auth, googleProvider);
     const user = res.user;
-		console.log("TCL: signInWithGoogle -> user", user)
 
     // Check if user exists in Firestore
     const q = query(collection(db, "users"), where("email", "==", user.email));

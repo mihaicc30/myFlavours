@@ -4,6 +4,15 @@ import Link from "next/link";
 import { Fragment } from "react";
 import Image from "next/image";
 
+export async function getStoredUser(user) {
+  if (!user) return;
+  console.log("Get stored user details", user);
+  const userQuery = query(collection(db, "users"), where("uid", "==", user));
+  const userQuerySnapshot = await getDocs(userQuery);
+  let userData = userQuerySnapshot.docs.map((element) => element.data());
+  return userData[0];
+}
+
 export async function toggleFavThisItem(itemID, userUID) {
   console.log("Toggling fav item : ", itemID, userUID);
   const userQuery = query(collection(db, "users"), where("uid", "==", userUID));
@@ -99,6 +108,23 @@ export async function getCountUser() {
   const q = await query(collection(db, "users"), orderBy("date", "desc"));
   const result = await getDocs(q);
   return result.size;
+}
+
+export async function getStaticUsers() {
+  console.log("Fetching number of users.");
+  const q = await query(collection(db, "users"), orderBy("date", "desc"));
+  const result = await getDocs(q);
+  const data = result.docs.map((element) => ({ userUID: String(element.data().uid) }));
+  return data;
+}
+
+export async function getUserRecipez(author) {
+  if (!author) return;
+  console.log("Fetching recipes belonging to ", author);
+  const q = await query(collection(db, "recipes"), where("author.uid", "==", author), orderBy("date", "desc"));
+  const result = await getDocs(q);
+  const data = result.docs.map((element) => element.data());
+  return data;
 }
 
 export async function getCountRecipe(author) {
@@ -214,7 +240,7 @@ export async function getFlavourites(author, filterWord) {
   return recipesData;
 }
 
-export function RecipeCard({ recipe, params, measure }) {
+export function RecipeCard({ recipe, params, measure, editMode }) {
   const formattedDate = new Date(recipe?.date).toLocaleString("en-GB", {
     month: "numeric",
     day: "numeric",
@@ -225,21 +251,22 @@ export function RecipeCard({ recipe, params, measure }) {
     hour12: true,
   });
   return (
-    <Link
-      href={`/recipe/${recipe?.id}`}
+    <div
       key={crypto.randomUUID()}
-      className={`morphx grid grid-cols-1 grid-rows-[10px_30px_200px_80px] border-2 px-1 py-2 rounded-xl min-w-[280px] m-1 max-sm:min-w-[220px] hover:scale-[1.02] transition`}
+      className={`morphx grid grid-cols-1 grid-rows-[10px_30px_200px_80px${editMode ? "_80px" : ""}] border-2 px-1 py-2 rounded-xl min-w-[280px] m-1 max-sm:min-w-[220px] `}
     >
       <p className="text-[9px] text-end">{formattedDate}</p>
       <h1 className="capitalize max-sm:text-sm p-2">{recipe.dishName}</h1>
       {/* {recipe.imgs[0] && <img src="./img1.jpg" alt="someimg" />} */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        className="m-auto rounded-lg aspect-1/1 max-h-[190px]"
-        src={`https://generatorfun.com/code/uploads/Random-Food-image-1.jpg`}
-        alt="someimg"
-      />
-      <div className="grid grid-cols-[1fr_2px_1fr] grid-rows-[26px_2px_26px] gap-2 min-w-[264px] max-sm:min-w-[180px] mt-auto">
+      <Link href={`/recipes/${recipe.id}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          className="m-auto rounded-lg aspect-1/1 max-h-[190px] hover:scale-[1.02] transition"
+          src={`https://generatorfun.com/code/uploads/Random-Food-image-1.jpg`}
+          alt="someimg"
+        />
+      </Link>
+      <div className="grid grid-cols-[1fr_2px_1fr] grid-rows-[30px_2px_30px_2px_30px] gap-2 min-w-[264px] max-sm:min-w-[180px] mt-auto">
         <div className="flex flex-nowrap relative w-[100%]">
           <div className={`grid grid-cols-5 w-[100%] text-[16px] max-sm:text-[10px] items-center justify-items-center`}>
             <span
@@ -308,6 +335,16 @@ export function RecipeCard({ recipe, params, measure }) {
         <p className="p-1 rounded-xl text-sm max-sm:text-[10px] flex flex-col justify-center text-center">
           <span className="max-sm:text-[14px]">👨‍🍳{recipe.author.displayName}</span>
         </p>
+        {editMode && (
+          <>
+            <span className="bg-black/10 rounded-full h-[2px]"></span>
+            <span className="h-0 w-0"></span>
+            <span className="bg-black/10 rounded-full h-[2px]"></span>
+            <button className="text-red-400">Delete</button>
+            <span className="bg-black/10 rounded-full"></span>
+            <button className="text-orange-400">Update</button>
+          </>
+        )}
       </div>
       {params?.showIngredients && (
         <div className={`flex flex-col text-sm py-2 my-2`}>
@@ -341,7 +378,7 @@ export function RecipeCard({ recipe, params, measure }) {
           ))}
         </div>
       )}
-    </Link>
+    </div>
   );
 }
 

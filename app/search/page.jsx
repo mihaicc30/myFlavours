@@ -10,7 +10,7 @@ const Search = () => {
   const searchParams = useSearchParams()
   const search = searchParams.get('query')
   
-  const [nameQuery, setNameQuery] = useState(search || "");
+  const [nameQuery, setNameQuery] = useState(!search ? "" : search);
  
 
   const {
@@ -18,7 +18,7 @@ const Search = () => {
     error,
     data: recipes,
   } = useSuspenseQuery({
-    queryKey: ["recipes", 10, nameQuery, search],
+    queryKey: ["recipes", 10, nameQuery, !search ? "" : search],
     queryFn: () => {
       const recipes = getRecipesQuery(10, null, null, nameQuery);
       return recipes;

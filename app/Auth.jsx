@@ -4,7 +4,7 @@ import { RiUserShared2Fill } from "react-icons/ri";
 import { FaFacebook } from "react-icons/fa";
 import Image from "next/image";
 import CustomLoading from "./CustomLoading";
-import { getCountRecipe, getCountUser } from "./CompsServer";
+import { getCountRecipe, getCountUser, getStoredUser } from "./CompsServer";
 import { signInWithGoogle } from "./firebaseConfig";
 import { AppContext } from "./AppContextWrapper";
 import { useRouter, usePathname } from "next/navigation";
@@ -75,12 +75,9 @@ const GoogleSignIn = async () => {
 const UNPSignIn = async () => {
   const { user, updateContext } = useContext(AppContext);
   const handleSignIn = async () => {
+    const testUser = await getStoredUser("testUser");
     updateContext({
-      user: {
-        uid: "dasiuh1iuiudqwiuiuwqdjiu",
-        email: "test@user.test",
-        displayName: "TestUser",
-      },
+      user: testUser,
     });
   };
 

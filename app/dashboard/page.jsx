@@ -16,10 +16,6 @@ export default function Dashboard() {
   const { push } = useRouter();
   const path = usePathname();
 
-  useEffect(() => {
-    if (!user && path.startsWith("/dashboard")) push("/");
-  }, [user, push, path]);
-
   const [punNo, setPunNo] = useState(false);
 
   useEffect(() => {

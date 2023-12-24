@@ -40,7 +40,7 @@ export default function SearchButton({ searchQuery, setSearchQuery }) {
       <input
         className={`py-2 px-8 w-[100%] mx-auto my-2 bg-white morphx col-span-full`}
         type="text"
-        value={search || searchQuery}
+        value={!search ? searchQuery : search}
         onChange={(e) => inputSearch(e.target.value)}
         placeholder="Search..."
       />

@@ -2,9 +2,14 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { auth, logOut } from "./firebaseConfig";
 import { onAuthStateChanged } from "firebase/auth";
+import { usePathname, useRouter } from "next/navigation";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { getStoredUser } from "./CompsServer";
 export const AppContext = createContext();
 
 export function AppContextWrapper({ children }) {
+  const pathname = usePathname();
+  const router = useRouter();
   const [contextValues, setContextValues] = useState({
     user: false,
   });
@@ -17,16 +22,43 @@ export function AppContextWrapper({ children }) {
   };
 
   useEffect(() => {
-    // Subscribe to auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (auth.currentUser && contextValues.user?.uid !== user.uid) {
-        updateContext({ user });
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        try {
+          const userData = await getStoredUser(user.uid);
+          updateContext({ user: userData });
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      } else {
+        // Handle the case when the user is not authenticated
+        updateContext({ user: null });
       }
     });
 
     // Unsubscribe from the listener when the component unmounts
-    return unsubscribe;
-  }, [contextValues]);
+    return () => {
+      unsubscribe();
+    };
+  }, []);
+
+  const [redirectTimer, setRedirectTimer] = useState(false);
+
+  useEffect(() => {
+    if (!contextValues.user && pathname !== "/") {
+      if (redirectTimer) {
+        clearTimeout(redirectTimer);
+      }
+      const timer = setTimeout(() => {
+        if (!contextValues.user) router.push("/");
+      }, 3000);
+
+      setRedirectTimer(true);
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [contextValues.user, pathname, router, redirectTimer]);
 
   return (
     <AppContext.Provider value={{ ...contextValues, updateContext }}>
@@ -39,22 +71,15 @@ export function AppContextWrapper({ children }) {
   );
 }
 
-import { usePathname } from "next/navigation";
 import { SiCodechef } from "react-icons/si";
 import { TbNavigationPin } from "react-icons/tb";
 import { GiArchiveResearch } from "react-icons/gi";
 import { FcLike } from "react-icons/fc";
-import { MdLogout } from "react-icons/md";
 import Link from "next/link";
 
 function TopNav() {
   const { user, updateContext } = useContext(AppContext);
   const pathname = usePathname();
-
-  const handleSignout = async () => {
-    await logOut();
-    updateContext({ user: false });
-  };
 
   return (
     <>
@@ -70,29 +95,24 @@ function TopNav() {
             <h1 className="m-0 text-3xl text-center text-white py-1 px-4 rounded-lg logoC">myFlavour</h1>
             <h2 className="text-center bg-white rounded-lg leading-[1px] absolute top-[40px] left-[50%] -translate-x-[25%] whitespace-nowrap p-[7px] border-b-2">by Fimiar</h2>
           </Link>
-          <div className="grid grid-cols-2 gap-2 ">
-            <Link
-              href="/profile"
-              className="relative flex cursor-pointer text-3xl hover:text-4xl "
-            >
-              {user.photoURL ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  className="m-auto h-[40px] w-[40px] rounded-full"
-                  src={user.photoURL}
-                  alt="Chef Cat"
-                />
-              ) : (
-                <SiCodechef className="transition-all absolute right-0 my-auto text-[50px] border-2 border-white rounded-full p-2" />
-              )}
-            </Link>
-            <Link
-              href="/"
-              onClick={handleSignout}
-              className="p-4 relative cursor-pointer text-3xl hover:text-4xl "
-            >
-              <MdLogout className="transition-all absolute left-0" />
-            </Link>
+          <div className="flex mx-4">
+            {user && pathname !== `/profile/${user?.uid}` && (
+              <Link
+                href={`/profile/${user?.uid}`}
+                className="relative flex cursor-pointer text-3xl hover:text-4xl "
+              >
+                {user.avatar ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    className="m-auto h-[40px] w-[40px] rounded-full"
+                    src={user.avatar}
+                    alt="Chef"
+                  />
+                ) : (
+                  <SiCodechef className="transition-all absolute right-0 my-auto text-[50px] border-2 border-white rounded-full p-2" />
+                )}
+              </Link>
+            )}
           </div>
         </div>
       )}
@@ -105,7 +125,7 @@ function BotNav() {
   return (
     <>
       {pathname !== "/" && (
-        <div className={`basis-[100px] px-10 bg-gradient-to-t from-[#cacaca] to-transparent flex flex-nowrap justify-evenly w-[100%] border-t-2 overflow-x-hidden`}>
+        <div className={`basis-[50px] px-10 bg-gradient-to-t from-[#cacaca] to-transparent flex flex-nowrap justify-evenly w-[100%] border-t-2 overflow-x-hidden`}>
           <Link
             href="/dashboard"
             className={`${pathname === "/dashboard" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
