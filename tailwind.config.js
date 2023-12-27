@@ -16,7 +16,7 @@ module.exports = {
       },
       keyframes: {
         fadeUP: {
-          "0%": { transform: "scale(0)", transformOrigin: "top", opacity: "0" },
+          "0%": { transform: "scale(0.3)", transformOrigin: "top", opacity: ".3" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
         fadeIN: {

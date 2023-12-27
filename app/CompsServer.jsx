@@ -469,7 +469,7 @@ export function FeaturedRecipeCard({ recipe, params, measure, user, showImg }) {
      
       <div
       onClick={showImg}
-        className="mainImg block flex-[30%] relative min-h-[50svw] bg-no-repeat bg-cover bg-top"
+        className="mainImg block flex-[30%] relative min-h-[50svw] bg-no-repeat bg-cover bg-center"
         style={{ backgroundImage: `url(${recipe.imgs.length > 0 ? recipe?.imgs[0] : ""})` }}
       ></div>
       <div className={`grid grid-cols-1 border-t-2 py-2 pl-2 pr-4 rounded-t-3xl w-[100svw] max-sm:min-w-[220px] z-10 bg-white`}>
