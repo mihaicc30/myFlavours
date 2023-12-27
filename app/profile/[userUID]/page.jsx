@@ -10,7 +10,7 @@ export async function generateStaticParams() {
 const Profile = ({ params }) => {
   return (
     <>
-      <ProfilePage userID={params.userID} />
+      <ProfilePage userID={params.userUID} />
     </>
   )
 }

@@ -35,7 +35,7 @@ export default function SearchButton({ searchQuery, setSearchQuery }) {
   };
 
   return (
-    <div className="flex flex-nowrap col-span-full relative">
+    <div className="flex flex-nowrap w-[100%] relative">
       <IoMdSearch className="absolute top-1/2 -translate-y-1/2 left-[10px]" />
       <input
         className={`py-2 px-8 w-[100%] mx-auto my-2 bg-white morphx col-span-full`}

@@ -48,10 +48,10 @@ export default function Dashboard() {
   if (!user) return;
 
   return (
-    <div className="m-[4px]">
+    <div className="flex flex-col m-[4px]">
       {punNo && user && (
-        <div className={`flex flex-col px-4 mt-8`}>
-          <p className="text-xl font-[600]">
+        <div className={`flex flex-col px-4 mt-4`}>
+          <p className="text-xl max-sm:text-sm font-[600]">
             {user?.displayName && <span>Hi, {user?.displayName}!</span>} {punNo && <span>{puns[punNo]}</span>}
           </p>
         </div>
@@ -59,7 +59,7 @@ export default function Dashboard() {
       <Suspense fallback={<CustomLoading />}>
         <DashboardSearchBar />
       </Suspense>
-      <div className={`flex flex-nowrap px-2 gap-2 relative my-8 max-w-[99svw]`}>
+      <div className={`flex flex-nowrap px-2 gap-2 relative my-2 max-w-[99svw] overflow-x-auto py-8`}>
         <Suspense fallback={<CustomLoading />}>
           <GetUserCountRecipes />
         </Suspense>
@@ -71,20 +71,20 @@ export default function Dashboard() {
         </Suspense>
       </div>
 
-      <div className={`flex flex-nowrap overflow-x-auto px-2 py-5 gap-2 relative my-8 max-w-[99svw]`}>
+      <div className={`flex flex-nowrap overflow-x-auto px-2 py-8 gap-2 relative my-8 max-w-[99svw]`}>
         <span className={`absolute top-0 left-4 text-sm font-[600]`}>Recently viewed</span>
         <Suspense fallback={<CustomLoading />}>
           <RecentlyViewed />
         </Suspense>
       </div>
 
-      <div className={`flex flex-nowrap overflow-x-auto px-2 py-5 gap-2 relative my-8 max-w-[99svw]`}>
+      <div className={`flex flex-nowrap overflow-x-auto px-2 py-8 gap-2 relative my-8 max-w-[99svw]`}>
         <span className={`absolute top-0 left-4 text-sm font-[600]`}>TOP 5 Rated</span>
         <Suspense fallback={<CustomLoading />}>
           <GetTopRated />
         </Suspense>
       </div>
-      <div className={`flex flex-nowrap overflow-x-auto px-2 py-5 gap-2 relative my-8 max-w-[99svw]`}>
+      <div className={`flex flex-nowrap overflow-x-auto px-2 py-8 gap-2 relative my-8 max-w-[99svw]`}>
         <span className={`absolute top-0 left-4 text-sm font-[600]`}>Recently added recipes</span>
         <Suspense fallback={<CustomLoading />}>
           <GetRecentlyAdded />

@@ -4,14 +4,13 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { RecipeCard, getRecipesQuery } from "../CompsServer";
 import SearchButton from "./SearchButton";
 import CustomLoading from "../CustomLoading";
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams } from "next/navigation";
 
 const Search = () => {
-  const searchParams = useSearchParams()
-  const search = searchParams.get('query')
-  
+  const searchParams = useSearchParams();
+  const search = searchParams.get("query");
+
   const [nameQuery, setNameQuery] = useState(!search ? "" : search);
- 
 
   const {
     isPending,
@@ -26,7 +25,7 @@ const Search = () => {
   });
 
   return (
-    <div className={`grid grid-cols-3 max-lg:grid-cols-2 max-sm:grid-cols-1 gap-2 px-2 pt-2 pb-6 overflow-x-hidden`}>
+    <div className={`flex flex-wrap justify-center gap-4 pl-2 pr-8 pt-2 pb-6 overflow-x-hidden`}>
       <SearchButton
         searchQuery={nameQuery}
         setSearchQuery={setNameQuery}

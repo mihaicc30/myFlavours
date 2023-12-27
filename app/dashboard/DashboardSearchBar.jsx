@@ -52,10 +52,12 @@ export default function DashboardSearchBar() {
           onChange={handleChange}
           placeholder="Search..."
         />
-        <TiDelete
-          onClick={clearSearch}
-          className="absolute top-1/2 -translate-y-1/2 right-[10px] p-2 text-4xl cursor-pointer active:scale-[.9] transition"
-        />
+        {searchValue.length > 0 && (
+          <TiDelete
+            onClick={clearSearch}
+            className="absolute top-1/2 -translate-y-1/2 right-[10px] p-2 text-4xl cursor-pointer active:scale-[.9] transition"
+          />
+        )}
       </div>
     </div>
   );

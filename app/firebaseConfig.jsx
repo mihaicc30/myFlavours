@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
 // import { getAnalytics } from "firebase/analytics";
+import { getStorage, ref } from "firebase/storage";
 import { getFirestore, collection, query, where, getDocs, addDoc, doc, updateDoc } from "firebase/firestore";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -24,6 +25,8 @@ const app = initializeApp(firebaseConfig);
 // const analytics = getAnalytics(app);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app, "gs://culinary-fimiar.appspot.com/");
+const storageRef = ref(storage);
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -38,7 +41,7 @@ const signInWithGoogle = async () => {
     if (docs.docs.length < 1) {
       // Add user to Firestore if not already exists
       const newUserRef = await addDoc(collection(db, "users"), {
-        id: new Date().getTime(),
+        uid: user.uid,
         displayName: user.displayName,
         username: user.displayName,
         email: user.email,
@@ -61,4 +64,4 @@ const logOut = async() =>{
   await signOut(auth);
 }
 
-export { db, signInWithGoogle, auth, app, logOut };
+export { db, signInWithGoogle, auth, app, logOut, storage, storageRef };

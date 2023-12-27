@@ -22,13 +22,11 @@ export default function Auth() {
   return (
     <div className={`flex flex-col gap-4 h-[100svh] w-[100svw]`}>
       <div className="flex flex-col my-auto gap-4">
-        <div className="relative w-[20svw] h-[25svh] mx-auto min-w-[200px] min-h-[150px]">
-          <Image
-            priority={true}
+        <div className="relative mx-auto min-w-[200px] min-h-[150px] max-h-[400px] max-w-[400px]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/intro.png"
             alt=""
-            fill={true}
-            sizes="w-[20svw] h-[25svh]"
           />
         </div>
         <p className={`text-center text-xl text-green-600`}>

@@ -26,7 +26,7 @@ export default function GetUserCountRecipes() {
           <Link
             // todo get link to user recipes page
             href={`/profile/${user.uid}/recipes`}
-            className={`morphx p-1 border-2 rounded-xl hover:scale-[0.98] transition`}
+            className={`morphx p-1 border-2 rounded-xl hover:scale-[0.98] transition whitespace-nowrap`}
           >
             {ownRecipesNumber} {ownRecipesNumber < 1 ? "Recipes" : ownRecipesNumber > 1 ? "Recipes" : "Recipe"}
           </Link>

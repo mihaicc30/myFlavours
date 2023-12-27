@@ -51,7 +51,7 @@ export function AppContextWrapper({ children }) {
       }
       const timer = setTimeout(() => {
         if (!contextValues.user) router.push("/");
-      }, 3000);
+      }, 2000);
 
       setRedirectTimer(true);
       return () => {
@@ -84,7 +84,7 @@ function TopNav() {
   return (
     <>
       {pathname !== "/" && !pathname.startsWith("/recipe") && (
-        <div className={`basis-[60px] bg-gradient-to-b from-[#cacaca] to-transparent flex flex-nowrap justify-between w-[100%] overflow-x-hidden`}>
+        <div className={`basis-[48px] bg-gradient-to-b from-[#cacaca] to-transparent flex flex-nowrap justify-between w-[100%] overflow-x-hidden`}>
           {/* <Link href="/" className="p-4 relative cursor-pointer text-3xl hover:text-4xl ">
             <TiThMenu className="transition-all absolute left-0" />
           </Link> */}
@@ -92,14 +92,14 @@ function TopNav() {
             href="/dashboard"
             className={`flex flex-col pt-1 cursor-pointer select-none relative ml-2 hover:scale-[0.98] active:scale-[.9] transition`}
           >
-            <h1 className="m-0 text-3xl text-center text-white py-1 px-4 rounded-lg logoC">myFlavour</h1>
-            <h2 className="text-center bg-white rounded-lg leading-[1px] absolute top-[40px] left-[50%] -translate-x-[25%] whitespace-nowrap p-[7px] border-b-2">by Fimiar</h2>
+            <h1 className="m-0 text-xl text-center text-white py-1 px-4 rounded-lg logoC">myFlavour</h1>
+            <h2 className="text-center text-[10px] bg-white rounded-lg leading-[1px] absolute top-[30px] left-[50%] -translate-x-[25%] whitespace-nowrap p-[7px] border-b-2">by Fimiar</h2>
           </Link>
           <div className="flex mx-4">
             {user && pathname !== `/profile/${user?.uid}` && (
               <Link
                 href={`/profile/${user?.uid}`}
-                className="relative flex cursor-pointer text-3xl hover:text-4xl "
+                className="relative flex cursor-pointer text-xl"
               >
                 {user.avatar ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -126,24 +126,26 @@ function BotNav() {
     <>
       {pathname !== "/" && (
         <div className={`basis-[50px] px-10 bg-gradient-to-t from-[#cacaca] to-transparent flex flex-nowrap justify-evenly w-[100%] border-t-2 overflow-x-hidden`}>
-          <Link
-            href="/dashboard"
-            className={`${pathname === "/dashboard" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
-          >
-            <TbNavigationPin className={`${pathname === "/dashboard" ? " " : "grayscale opacity-40"} text-blue-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
-          </Link>
-          <Link
-            href="/favorites"
-            className={`${pathname === "/favorites" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
-          >
-            <FcLike className={`${pathname === "/favorites" ? "text-red-600 " : "grayscale opacity-40"} transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
-          </Link>
-          <Link
-            href="/search"
-            className={`${pathname === "/search" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
-          >
-            <GiArchiveResearch className={`${pathname === "/search" ? " " : "grayscale opacity-40"} text-orange-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
-          </Link>
+          <div className="flex flex-nowrap justify-evenly w-[100%] max-w-[700px]">
+            <Link
+              href="/dashboard"
+              className={`${pathname === "/dashboard" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
+            >
+              <TbNavigationPin className={`${pathname === "/dashboard" ? " " : "grayscale opacity-40"} text-blue-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
+            </Link>
+            <Link
+              href="/favorites"
+              className={`${pathname === "/favorites" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
+            >
+              <FcLike className={`${pathname === "/favorites" ? "text-red-600 " : "grayscale opacity-40"} transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
+            </Link>
+            <Link
+              href="/search"
+              className={`${pathname === "/search" ? "morphx" : ""} basis-[32%] my-2 relative cursor-pointer text-3xl hover:text-4xl flex hover:scale-[.98] active:scale-[0.9] transition`}
+            >
+              <GiArchiveResearch className={`${pathname === "/search" ? " " : "grayscale opacity-40"} text-orange-600 transition-all absolute top-[50%] -translate-y-[50%] left-[50%] -translate-x-[50%]`} />
+            </Link>
+          </div>
         </div>
       )}
     </>

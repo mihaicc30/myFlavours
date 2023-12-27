@@ -25,7 +25,7 @@ export default function UserFaved() {
         <>
           <Link
             href={"/favorites"}
-            className={`morphx p-1 border-2 rounded-xl hover:scale-[0.98] transition`}
+            className={`morphx p-1 border-2 rounded-xl hover:scale-[0.98] transition whitespace-nowrap`}
           >
             {favedRecipesNumber} {favedRecipesNumber < 1 ? "Flavorites" : favedRecipesNumber > 1 ? "Flavorites" : "Flavorite"}
           </Link>

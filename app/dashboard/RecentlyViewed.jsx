@@ -19,6 +19,9 @@ export default function RecentlyViewed() {
     },
   });
 
+  
+  console.log((Object.values(recipes)))
+
   return (
     <>
         {recipes.map((recipeData) => (
